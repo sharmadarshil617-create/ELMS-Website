@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Employee Leave Management System - Multi-Company Platform">
+    <title>ELMS - Employee Leave Management System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ============================================================ -->
+    <!-- LANDING PAGE SECTION -->
+    <!-- ============================================================ -->
+    <section id="landing-page">
+        <nav class="landing-nav">
+            <div class="container">
+                <div class="logo">
+                    <span class="logo-icon">📋</span>
+                    <span class="logo-text">ELMS</span>
+                </div>
+                <button id="nav-login-btn" class="btn btn-primary">Login to Portal</button>
+            </div>
+        </nav>
+
+        <div class="hero">
+            <div class="container">
+                <h1 class="hero-title">Simplify Leave Management.<br><span class="highlight">Empower Your Team.</span></h1>
+                <p class="hero-subtitle">Multi-company leave management platform with intelligent validation, role-based access, and complete data isolation.</p>
+                <div class="hero-cta">
+                    <button id="hero-cta-btn" class="btn btn-large btn-primary">Get Started</button>
+                </div>
+                <div class="hero-badge">
+                    <span class="badge-icon">✓</span>
+                    <span>Secure Multi-Tenant Architecture • 24-Hour Advance Rule • Instant Approvals</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="features">
+            <div class="container">
+                <h2 class="section-title">Enterprise Features for Modern Organizations</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🏢</div>
+                        <h3>Multi-Company Support</h3>
+                        <p>Complete data isolation with unique company codes. Each organization operates independently with secure access controls.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">�</div>
+                        <h3>Real-Time Leave Tracking</h3>
+                        <p>Monitor leave balances across Casual, Sick, and Earned categories with automatic deductions upon approval.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔒</div>
+                        <h3>Role-Based Access Control</h3>
+                        <p>Three-tier security: Employees manage requests, Managers approve/reject, HR Admins oversee organization.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Smart Validation Rules</h3>
+                        <p>24-hour advance policy enforcement prevents last-minute submissions and ensures proper planning.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">✅</div>
+                        <h3>Instant Approval Workflow</h3>
+                        <p>One-click approvals with mandatory rejection reasons maintain clear communication and accountability.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">�</div>
+                        <h3>HR Analytics Dashboard</h3>
+                        <p>Comprehensive metrics and insights for organizational leave patterns and workforce planning.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="landing-footer">
+            <div class="container">
+                <p>&copy; 2026 ELMS. Enterprise Leave Management Platform.</p>
+            </div>
+        </footer>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- AUTHENTICATION PAGE SECTION -->
+    <!-- ============================================================ -->
+    <section id="auth-page" class="d-none">
+        <div class="auth-wrapper">
+            <button id="back-to-landing" class="btn-back">← Back to Home</button>
+            
+            <div class="auth-container">
+                <div class="auth-header">
+                    <div class="logo-large">
+                        <span class="logo-icon">📋</span>
+                        <span class="logo-text">ELMS</span>
+                    </div>
+                    <h2 id="auth-title">Sign In to Your Portal</h2>
+                </div>
+
+                <div class="auth-tabs">
+                    <button id="signin-tab" class="auth-tab active">Sign In</button>
+                    <button id="signup-tab" class="auth-tab">Sign Up</button>
+                </div>
+
+                <!-- Sign In Form -->
+                <form id="signin-form" class="auth-form active">
+                    <div class="form-group">
+                        <label for="signin-email">Email Address</label>
+                        <input type="email" id="signin-email" class="form-input" placeholder="you@company.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signin-password">Password</label>
+                        <input type="password" id="signin-password" class="form-input" placeholder="Enter password" required>
+                    </div>
+                    <div id="signin-error" class="error-message"></div>
+                    <button type="submit" class="btn btn-primary btn-full">Sign In</button>
+                </form>
+
+                <!-- Sign Up Form -->
+                <form id="signup-form" class="auth-form">
+                    <div class="form-group">
+                        <label for="signup-name">Full Name</label>
+                        <input type="text" id="signup-name" class="form-input" placeholder="John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-email">Email Address</label>
+                        <input type="email" id="signup-email" class="form-input" placeholder="you@company.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password">Password</label>
+                        <input type="password" id="signup-password" class="form-input" placeholder="Minimum 6 characters" required minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-role">Role</label>
+                        <select id="signup-role" class="form-input" required>
+                            <option value="">Select Role</option>
+                            <option value="Employee">Employee</option>
+                            <option value="Manager">Manager</option>
+                            <option value="HR Admin">HR Admin (Create New Company)</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Dynamic fields based on role -->
+                    <div id="company-name-group" class="form-group d-none">
+                        <label for="signup-company-name">Company Name</label>
+                        <input type="text" id="signup-company-name" class="form-input" placeholder="Acme Corporation">
+                        <small class="form-hint">A unique Company Code will be generated for your organization</small>
+                    </div>
+                    
+                    <div id="company-code-group" class="form-group d-none">
+                        <label for="signup-company-code">Company Code</label>
+                        <input type="text" id="signup-company-code" class="form-input" placeholder="COMP-1234" style="text-transform: uppercase;">
+                        <small class="form-hint">Enter the code provided by your HR Admin</small>
+                    </div>
+                    
+                    <div id="signup-error" class="error-message"></div>
+                    <button type="submit" class="btn btn-primary btn-full">Create Account</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- DASHBOARD PAGE SECTION -->
+    <!-- ============================================================ -->
+    <section id="dashboard-page" class="d-none">
+        
+        <!-- Dashboard Header -->
+        <header class="dashboard-header">
+            <div class="container">
+                <div class="logo">
+                    <span class="logo-icon">📋</span>
+                    <span class="logo-text">ELMS</span>
+                </div>
+                <div class="header-right">
+                    <div class="user-info">
+                        <span id="user-name-display" class="user-name"></span>
+                        <span id="user-role-display" class="user-badge"></span>
+                    </div>
+                    <button id="logout-btn" class="btn btn-secondary">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="dashboard-container">
+            
+            <!-- ============================================ -->
+            <!-- EMPLOYEE VIEW -->
+            <!-- ============================================ -->
+            <div id="employee-view" class="d-none">
+                <div class="container">
+                    <h1 class="page-title">My Leave Dashboard</h1>
+
+                    <!-- Leave Balance Cards -->
+                    <div class="balance-grid">
+                        <div class="balance-card casual">
+                            <div class="balance-icon">☀️</div>
+                            <div class="balance-content">
+                                <h3>Casual Leave</h3>
+                                <div class="balance-value" id="casual-balance">0</div>
+                                <span class="balance-label">days remaining</span>
+                            </div>
+                        </div>
+                        <div class="balance-card sick">
+                            <div class="balance-icon">🏥</div>
+                            <div class="balance-content">
+                                <h3>Sick Leave</h3>
+                                <div class="balance-value" id="sick-balance">0</div>
+                                <span class="balance-label">days remaining</span>
+                            </div>
+                        </div>
+                        <div class="balance-card earned">
+                            <div class="balance-icon">🌴</div>
+                            <div class="balance-content">
+                                <h3>Earned Leave</h3>
+                                <div class="balance-value" id="earned-balance">0</div>
+                                <span class="balance-label">days remaining</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Leave Request Form -->
+                    <div class="card">
+                        <h2 class="card-title">Request New Leave</h2>
+                        <form id="leave-request-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="leave-type">Leave Type</label>
+                                    <select id="leave-type" class="form-input" required>
+                                        <option value="Casual">Casual Leave</option>
+                                        <option value="Sick">Sick Leave</option>
+                                        <option value="Earned">Earned Leave</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="start-date">Start Date</label>
+                                    <input type="date" id="start-date" class="form-input" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="end-date">End Date</label>
+                                    <input type="date" id="end-date" class="form-input" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="reason">Reason</label>
+                                <textarea id="reason" class="form-input" rows="3" placeholder="Brief reason for leave request" required></textarea>
+                            </div>
+                            <div id="request-error" class="error-message"></div>
+                            <div id="request-success" class="success-message"></div>
+                            <button type="submit" class="btn btn-primary">Submit Request</button>
+                        </form>
+                    </div>
+
+                    <!-- Leave History -->
+                    <div class="card">
+                        <h2 class="card-title">My Leave History</h2>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>Start Date</th>
+                                        <th>End Date</th>
+                                        <th>Days</th>
+                                        <th>Reason</th>
+                                        <th>Status</th>
+                                        <th>Submitted</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="employee-requests-tbody">
+                                    <tr><td colspan="7" class="text-center">No leave requests yet</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================ -->
+            <!-- MANAGER VIEW -->
+            <!-- ============================================ -->
+            <div id="manager-view" class="d-none">
+                <div class="container">
+                    <h1 class="page-title">Manager Dashboard</h1>
+
+                    <!-- Pending Requests -->
+                    <div class="card">
+                        <h2 class="card-title">Pending Leave Requests</h2>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Employee</th>
+                                        <th>Type</th>
+                                        <th>Start Date</th>
+                                        <th>End Date</th>
+                                        <th>Days</th>
+                                        <th>Reason</th>
+                                        <th>Submitted</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="manager-pending-tbody">
+                                    <tr><td colspan="8" class="text-center">No pending requests</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- All Requests -->
+                    <div class="card">
+                        <h2 class="card-title">All Team Requests</h2>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Employee</th>
+                                        <th>Type</th>
+                                        <th>Start Date</th>
+                                        <th>End Date</th>
+                                        <th>Days</th>
+                                        <th>Status</th>
+                                        <th>Submitted</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="manager-all-tbody">
+                                    <tr><td colspan="7" class="text-center">No requests found</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================ -->
+            <!-- HR ADMIN VIEW -->
+            <!-- ============================================ -->
+            <div id="hr-view" class="d-none">
+                <div class="container">
+                    <h1 class="page-title">HR Admin Dashboard</h1>
+
+                    <!-- Company Info Card -->
+                    <div class="company-info-card">
+                        <div class="company-info-header">
+                            <div class="company-icon">🏢</div>
+                            <div class="company-details">
+                                <h3 id="company-name-display">Loading...</h3>
+                                <p class="company-subtitle">Company Information</p>
+                            </div>
+                        </div>
+                        <div class="company-code-section">
+                            <label>Company Access Code</label>
+                            <div class="code-display">
+                                <span id="company-code-display" class="company-code">LOADING</span>
+                                <button id="copy-code-btn" class="btn btn-secondary btn-sm" title="Copy to clipboard">📋 Copy</button>
+                            </div>
+                            <small class="code-hint">Share this code with employees and managers to join your organization</small>
+                        </div>
+                    </div>
+
+                    <!-- Metrics -->
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="total-employees-metric">0</div>
+                            <div class="metric-label">Total Employees</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="pending-requests-metric">0</div>
+                            <div class="metric-label">Pending Requests</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="approved-month-metric">0</div>
+                            <div class="metric-label">Approved This Month</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="total-days-metric">0</div>
+                            <div class="metric-label">Total Leave Days</div>
+                        </div>
+                    </div>
+
+                    <!-- All Employees -->
+                    <div class="card">
+                        <h2 class="card-title">Company Employees</h2>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Casual</th>
+                                        <th>Sick</th>
+                                        <th>Earned</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="hr-employees-tbody">
+                                    <tr><td colspan="6" class="text-center">No employees found</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- All Requests -->
+                    <div class="card">
+                        <h2 class="card-title">Company Leave Requests</h2>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Employee</th>
+                                        <th>Type</th>
+                                        <th>Start Date</th>
+                                        <th>End Date</th>
+                                        <th>Days</th>
+                                        <th>Status</th>
+                                        <th>Reason</th>
+                                        <th>Submitted</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="hr-all-requests-tbody">
+                                    <tr><td colspan="8" class="text-center">No requests found</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- REJECTION MODAL -->
+    <!-- ============================================================ -->
+    <div id="rejection-modal" class="modal d-none">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Reject Leave Request</h3>
+                <button class="modal-close" id="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Please provide a reason for rejecting this leave request:</p>
+                <textarea id="rejection-reason" class="form-input" rows="4" placeholder="Enter rejection reason..." required></textarea>
+                <div id="modal-error" class="error-message"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="modal-cancel-btn" class="btn btn-secondary">Cancel</button>
+                <button id="modal-submit-btn" class="btn btn-primary">Submit Rejection</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
