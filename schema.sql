@@ -33,7 +33,7 @@ exception when duplicate_object then null; end $$;
 -- One row per company / tenant
 create table if not exists public.companies (
   id         uuid primary key default gen_random_uuid(),
-  code       text unique not null,       -- e.g. COMP-1234, shown to HR to share
+  code       text unique not null check (code ~ '^COMP-[0-9]{4}$'), -- e.g. COMP-1234, shown to HR to share
   name       text not null,
   created_at timestamptz not null default now()
 );
@@ -47,9 +47,9 @@ create table if not exists public.profiles (
   email          text not null,
   role           public.user_role not null,
   company_id     uuid not null references public.companies(id) on delete cascade,
-  casual_balance numeric not null default 12,
-  sick_balance   numeric not null default 10,
-  earned_balance numeric not null default 15,
+  casual_balance integer not null default 12 check (casual_balance >= 0),
+  sick_balance   integer not null default 10 check (sick_balance >= 0),
+  earned_balance integer not null default 15 check (earned_balance >= 0),
   created_at     timestamptz not null default now()
 );
 
@@ -66,10 +66,17 @@ create table if not exists public.leave_requests (
   status            public.leave_status not null default 'Pending',
   rejection_reason  text,
   created_at        timestamptz not null default now(),
-  check (end_date >= start_date)
+  check (end_date >= start_date),
+  check (
+    status <> 'Rejected' or (
+      rejection_reason is not null and length(trim(rejection_reason)) > 0
+    )
+  )
 );
 
 create index if not exists idx_profiles_company on public.profiles (company_id);
+create unique index if not exists idx_profiles_email_lower on public.profiles (lower(email));
+create unique index if not exists idx_companies_name_lower on public.companies (lower(name));
 create index if not exists idx_requests_company on public.leave_requests (company_id);
 create index if not exists idx_requests_user on public.leave_requests (user_id);
 create index if not exists idx_requests_status on public.leave_requests (status);
@@ -94,6 +101,21 @@ begin
 end;
 $$;
 
+create or replace function public.format_company_code(v_code text)
+returns text
+language plpgsql
+as $$
+declare
+  normalized text := upper(trim(v_code));
+begin
+  normalized := regexp_replace(normalized, '[^A-Z0-9]', '', 'g');
+  if normalized ~ '^COMP[0-9]{4}$' then
+    return substr(normalized, 1, 4) || '-' || substr(normalized, 5);
+  end if;
+  return null;
+end;
+$$;
+
 create or replace function public.set_company_code()
 returns trigger
 language plpgsql
@@ -101,6 +123,8 @@ as $$
 begin
   if new.code is null or new.code = '' then
     new.code := public.generate_company_code();
+  else
+    new.code := public.format_company_code(new.code);
   end if;
   return new;
 end;

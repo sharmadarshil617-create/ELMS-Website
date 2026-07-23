@@ -11,8 +11,8 @@
 // ----------------------------------------------------------------------------
 // Project URL was derived from the "ref" claim in your anon key's JWT payload.
 // The anon key is meant to be public/client-side — see note in the chat reply.
-const SUPABASE_URL = 'https://hryftxttxjvgrgbhqdaa.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhyeWZ0eHR0eGp2Z3JnYmhxZGFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ1NTE4OTEsImV4cCI6MjEwMDEyNzg5MX0.PUyrDfyXfRk9Ot9Q97qfcpY2oSNOnVSTw7fQB7FOTkE';
+const SUPABASE_URL = "https://ynecixgzccipyhwtsacg.supabase.co";
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InluZWNpeGd6Y2NpcHlod3RzYWNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MzcwNjEsImV4cCI6MjEwMDMxMzA2MX0._WWGiWv5OdbbmxUCGcnAxntFr8t_SNaPaypYArCWXIA';
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -21,6 +21,155 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ============================================================================
 
 let currentUser = null; // holds the merged { ...authUser, ...profile } record
+let useLocalFallback = false;
+const LOCAL_DB_KEY = 'elms_local_db';
+const LOCAL_SESSION_KEY = 'elms_local_session';
+
+function getLocalDB() {
+    const raw = localStorage.getItem(LOCAL_DB_KEY);
+    if (!raw) return { companies: [], profiles: [], leave_requests: [] };
+    try {
+        return JSON.parse(raw);
+    } catch {
+        return { companies: [], profiles: [], leave_requests: [] };
+    }
+}
+
+function saveLocalDB(db) {
+    localStorage.setItem(LOCAL_DB_KEY, JSON.stringify(db));
+}
+
+function loadLocalSession() {
+    const raw = localStorage.getItem(LOCAL_SESSION_KEY);
+    if (!raw) return null;
+    try {
+        return JSON.parse(raw);
+    } catch {
+        return null;
+    }
+}
+
+function saveLocalSession(session) {
+    localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(session));
+}
+
+function clearLocalSession() {
+    localStorage.removeItem(LOCAL_SESSION_KEY);
+}
+
+function localGenerateId(prefix = 'local') {
+    return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function localFindCompanyById(companyId) {
+    const db = getLocalDB();
+    return db.companies.find(company => company.id === companyId) || null;
+}
+
+function localFindCompanyByCode(companyCode) {
+    const normalized = normalizeCompanyCode(companyCode);
+    if (!normalized) return null;
+    const db = getLocalDB();
+    return db.companies.find(company => normalizeCompanyCode(company.code) === normalized) || null;
+}
+
+function localFindProfileByEmail(email) {
+    const db = getLocalDB();
+    return db.profiles.find(profile => profile.email.toLowerCase() === email.toLowerCase()) || null;
+}
+
+function localAuthenticate(email, password) {
+    const profile = localFindProfileByEmail(email);
+    return profile && profile.password === password ? profile : null;
+}
+
+function localFetchProfile(userId) {
+    const db = getLocalDB();
+    const data = db.profiles.find(profile => profile.id === userId);
+    if (!data) return null;
+
+    const company = localFindCompanyById(data.company_id);
+    return {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        companyId: data.company_id,
+        companyCode: company?.code,
+        companyName: company?.name,
+        casualBalance: data.casual_balance,
+        sickBalance: data.sick_balance,
+        earnedBalance: data.earned_balance
+    };
+}
+
+function localCreateCompany(name) {
+    const db = getLocalDB();
+    const company = {
+        id: localGenerateId('company'),
+        code: `COMP-${Math.floor(Math.random() * 9000 + 1000)}`,
+        name,
+        created_at: new Date().toISOString()
+    };
+    db.companies.push(company);
+    saveLocalDB(db);
+    return company;
+}
+
+function localCreateProfile(profileData) {
+    const db = getLocalDB();
+    db.profiles.push(profileData);
+    saveLocalDB(db);
+    return profileData;
+}
+
+function localSeedDatabase() {
+    const db = getLocalDB();
+    if (db.companies.length === 0) {
+        const company = {
+            id: localGenerateId('company'),
+            code: 'COMP-0001',
+            name: 'Local Demo Co',
+            created_at: new Date().toISOString()
+        };
+        const profile = {
+            id: localGenerateId('profile'),
+            name: 'Local Admin',
+            email: 'admin@local.com',
+            password: 'admin123',
+            role: 'HR Admin',
+            company_id: company.id,
+            casual_balance: 12,
+            sick_balance: 10,
+            earned_balance: 15,
+            created_at: new Date().toISOString()
+        };
+        db.companies.push(company);
+        db.profiles.push(profile);
+        saveLocalDB(db);
+    }
+}
+
+async function checkSupabaseBackend() {
+    try {
+        const { error } = await sb.from('companies').select('id').limit(1);
+        return !error;
+    } catch (err) {
+        console.warn('Supabase backend unavailable:', err);
+        return false;
+    }
+}
+
+async function ensureBackendAvailable() {
+    if (useLocalFallback) return false;
+    const ok = await checkSupabaseBackend();
+    if (!ok) {
+        useLocalFallback = true;
+        localSeedDatabase();
+        return false;
+    }
+    return true;
+}
 
 // ============================================================================
 // NAVIGATION & VIEW MANAGEMENT
@@ -61,6 +210,10 @@ async function showDashboard() {
 // ============================================================================
 
 async function fetchProfile(userId) {
+    if (useLocalFallback) {
+        return localFetchProfile(userId);
+    }
+
     const { data, error } = await sb
         .from('profiles')
         .select('*, companies(code, name)')
@@ -84,6 +237,20 @@ async function fetchProfile(userId) {
 }
 
 async function initSession() {
+    const backendOk = await ensureBackendAvailable();
+    if (!backendOk) {
+        const localSession = loadLocalSession();
+        if (localSession?.userId) {
+            const profile = localFetchProfile(localSession.userId);
+            if (profile) {
+                currentUser = profile;
+                await showDashboard();
+                return;
+            }
+        }
+        return;
+    }
+
     const { data: { session } } = await sb.auth.getSession();
     if (session?.user) {
         const profile = await fetchProfile(session.user.id);
@@ -110,6 +277,20 @@ async function handleSignIn(e) {
     submitBtn.disabled = true;
 
     try {
+        const backendOk = await ensureBackendAvailable();
+        if (!backendOk) {
+            const profile = localAuthenticate(email, password);
+            if (!profile) {
+                errorDiv.textContent = 'Invalid email or password';
+                return;
+            }
+
+            currentUser = localFetchProfile(profile.id);
+            saveLocalSession({ userId: profile.id });
+            await showDashboard();
+            return;
+        }
+
         const { data, error } = await sb.auth.signInWithPassword({ email, password });
 
         if (error) {
@@ -135,6 +316,24 @@ async function handleSignIn(e) {
     }
 }
 
+function normalizeCompanyCode(code) {
+    if (!code) return '';
+
+    const characters = code.trim().toUpperCase();
+    const cleaned = characters.replace(/[^A-Z0-9]/g, '');
+
+    if (/^COMP\d{4}$/.test(cleaned)) {
+        return `${cleaned.slice(0, 4)}-${cleaned.slice(4)}`;
+    }
+
+    const withHyphen = characters.replace(/[^A-Z0-9-]/g, '');
+    if (/^COMP-\d{4}$/.test(withHyphen)) {
+        return withHyphen;
+    }
+
+    return '';
+}
+
 async function handleSignUp(e) {
     e.preventDefault();
 
@@ -149,7 +348,7 @@ async function handleSignUp(e) {
     submitBtn.disabled = true;
 
     try {
-        let companyName, companyCodeInput;
+        let companyName, companyCodeInput, company;
 
         if (role === 'HR Admin') {
             companyName = document.getElementById('signup-company-name').value.trim();
@@ -158,19 +357,64 @@ async function handleSignUp(e) {
                 return;
             }
         } else {
-            companyCodeInput = document.getElementById('signup-company-code').value.trim().toUpperCase();
+            companyCodeInput = normalizeCompanyCode(document.getElementById('signup-company-code').value);
             if (!companyCodeInput) {
-                errorDiv.textContent = 'Company code is required';
+                errorDiv.textContent = 'Company code is required and must match COMP-1234 format.';
+                return;
+            }
+        }
+
+        const backendOk = await ensureBackendAvailable();
+        if (!backendOk) {
+            if (localFindProfileByEmail(email)) {
+                errorDiv.textContent = 'Email already registered';
                 return;
             }
 
+            if (role === 'HR Admin') {
+                company = localCreateCompany(companyName);
+            } else {
+                company = localFindCompanyByCode(companyCodeInput);
+                if (!company) {
+                    errorDiv.textContent = 'Invalid Company Code';
+                    return;
+                }
+            }
+
+            const profileData = {
+                id: localGenerateId('profile'),
+                name,
+                email,
+                password,
+                role,
+                company_id: company.id,
+                casual_balance: 12,
+                sick_balance: 10,
+                earned_balance: 15,
+                created_at: new Date().toISOString()
+            };
+            localCreateProfile(profileData);
+            saveLocalSession({ userId: profileData.id });
+
+            currentUser = localFetchProfile(profileData.id);
+            await showDashboard();
+            return;
+        }
+
+        if (role !== 'HR Admin') {
             const { data: existingCompany, error: lookupError } = await sb
                 .from('companies')
                 .select('id, code, name')
                 .eq('code', companyCodeInput)
                 .maybeSingle();
 
-            if (lookupError || !existingCompany) {
+            if (lookupError) {
+                errorDiv.textContent = 'Could not validate Company Code. Please try again.';
+                console.error(lookupError);
+                return;
+            }
+
+            if (!existingCompany) {
                 errorDiv.textContent = 'Invalid Company Code';
                 return;
             }
@@ -259,6 +503,13 @@ async function handleSignUp(e) {
 }
 
 async function handleLogout() {
+    if (useLocalFallback) {
+        clearLocalSession();
+        currentUser = null;
+        showView('landing-page');
+        return;
+    }
+
     await sb.auth.signOut();
     currentUser = null;
     showView('landing-page');
